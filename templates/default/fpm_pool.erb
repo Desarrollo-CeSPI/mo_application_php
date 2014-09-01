@@ -1,0 +1,5 @@
+[<%= @name %>]
+
+<% @options.each do |configuration,value| -%>
+<%= "#{configuration} = #{value}" %>
+<% end -%>
