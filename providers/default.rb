@@ -203,6 +203,14 @@ def nginx_create_configuration(template_action=:create)
       "site_type" => "dynamic"
     }.merge(options)
 
+    node.set['cespi_application']['server_names'] = (node['cespi_application']['server_names'] + [ conf['server_name'] ]).uniq
+    node.save unless Chef::Config[:solo]
+    hostsfile_entry node.ipaddress do
+      hostname  node.fqdn
+      aliases   node['cespi_application']['server_names']
+      action    :create
+    end
+
     nginx_conf_file name do
       action conf['action']
       block conf['block']
