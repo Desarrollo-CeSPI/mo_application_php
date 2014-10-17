@@ -64,7 +64,6 @@ action :remove do
 end
 
 
-
 def fix_chroot
   root = ::File.join(new_resource.path,new_resource.path)
 
