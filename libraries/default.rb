@@ -8,13 +8,15 @@ class CespiApplicationPhp
       # User needs
       klass.attribute :home, :kind_of => [String, NilClass], :default => nil
       klass.attribute :shell, :kind_of => String, :default => "/bin/bash"
+      klass.attribute :ssh_keys, :kind_of => Array, :default => []
 
       # Deploy needs
       klass.attribute :name, :kind_of => String, :name_attribute => true
+      klass.attribute :deploy, :kind_of => [TrueClass, FalseClass], :default => true
       klass.attribute :user, :kind_of => [String, NilClass], :default => nil
       klass.attribute :group, :kind_of => [String, NilClass], :default => nil
       klass.attribute :relative_path, :kind_of => String, :default => 'app'
-      klass.attribute :repo, :kind_of => String, :required => true
+      klass.attribute :repo, :kind_of => String
       klass.attribute :revision, :kind_of => [String], :default => "HEAD"
       klass.attribute :migrate, :kind_of => [TrueClass, FalseClass], :default => false
       klass.attribute :migration_command, :kind_of => [String, NilClass]
@@ -24,7 +26,7 @@ class CespiApplicationPhp
       klass.attribute :force_deploy, :kind_of => [TrueClass,FalseClass], :default => false
 
       # Chrooted environment
-      klass.attribute :path, :kind_of => String, :name_attribute => true
+      klass.attribute :path, :kind_of => String
       klass.attribute :copy_files, :kind_of => [Array,String], :default => []
 
       # PHP-fpm options

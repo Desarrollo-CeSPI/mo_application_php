@@ -8,6 +8,7 @@ action :install do
 
   cespi_application_user new_resource.user do
     group new_resource.group
+    ssh_keys new_resource.ssh_keys
   end
 
   directory ::File.join(new_resource.path,session_dir) do
@@ -26,20 +27,36 @@ action :install do
     group new_resource.group
   end
 
-  cespi_application_deploy new_resource.name do
-    user                        new_resource.user
-    group                       new_resource.group
-    path                        ::File.join(new_resource.path,new_resource.relative_path)
-    repo                        new_resource.repo
-    revision                    new_resource.revision
-    migrate                     new_resource.migrate
-    migration_command           new_resource.migration_command
-    shared_dirs                 new_resource.shared_dirs
-    shared_files                new_resource.shared_files
-    create_dirs_before_symlink  new_resource.create_dirs_before_symlink
-    force_deploy                new_resource.force_deploy
-    before_deploy(&new_resource.callback_before_deploy) if new_resource.callback_before_deploy
+  if new_resource.deploy
+
+    cespi_application_deploy new_resource.name do
+      user                        new_resource.user
+      group                       new_resource.group
+      path                        ::File.join(new_resource.path,new_resource.relative_path)
+      repo                        new_resource.repo
+      revision                    new_resource.revision
+      migrate                     new_resource.migrate
+      migration_command           new_resource.migration_command
+      shared_dirs                 new_resource.shared_dirs
+      shared_files                new_resource.shared_files
+      create_dirs_before_symlink  new_resource.create_dirs_before_symlink
+      force_deploy                new_resource.force_deploy
+      before_deploy(&new_resource.callback_before_deploy) if new_resource.callback_before_deploy
+    end
+
+  else
+
+    directory ::File.join(new_resource.path,new_resource.relative_path) do
+      owner new_resource.user
+      group new_resource.group
+    end
+
   end
+
+  link ::File.join('/home',new_resource.user,'application') do
+    to ::File.join(new_resource.path,new_resource.relative_path)
+  end
+
 
   php_fpm_pool
 
