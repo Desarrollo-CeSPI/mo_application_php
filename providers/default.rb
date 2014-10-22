@@ -57,6 +57,10 @@ action :install do
     to ::File.join(new_resource.path,new_resource.relative_path)
   end
 
+  link ::File.join('/home',new_resource.user,'log') do
+    to ::File.join(new_resource.path,'log')
+  end
+
 
   php_fpm_pool
 
