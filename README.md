@@ -83,3 +83,6 @@ It also configures some predefined options
 ### Recipe `cespi_application_php::install`
 
 Installs all requirements
+
+## TODO
+* php-fpm dependency cookbook restarts service on every chef-run. See [Reported BUG](https://github.com/stajkowski/php5-fpm/issues/2)
