@@ -1,8 +1,6 @@
 # cespi_application_php-cookbook
 
-LWRP that extends
-[cespi_application](https://git.cespi.unlp.edu.ar/produccion/cespi_application)
-for PHP applications
+LWRP that extends [cespi_application](https://git.cespi.unlp.edu.ar/produccion/cespi_application) for PHP applications
 
 ## Usage
 
