@@ -1,51 +1,87 @@
 # cespi_application_php-cookbook
 
-TODO: Enter the cookbook description here.
-
-## Supported Platforms
-
-TODO: List your supported platforms.
-
-## Attributes
-
-<table>
-  <tr>
-    <th>Key</th>
-    <th>Type</th>
-    <th>Description</th>
-    <th>Default</th>
-  </tr>
-  <tr>
-    <td><tt>['cespi_application_php']['bacon']</tt></td>
-    <td>Boolean</td>
-    <td>whether to include bacon</td>
-    <td><tt>true</tt></td>
-  </tr>
-</table>
+LWRP that extends
+[cespi_application](https://git.cespi.unlp.edu.ar/produccion/cespi_application)
+for PHP applications
 
 ## Usage
 
-### cespi_application_php::default
+Just include this recipe as a dependency and use provided LWRPs:
 
-Include `cespi_application_php` in your node's `run_list`:
+### Resource `cespi_application_php`
 
-```json
-{
-  "run_list": [
-    "recipe[cespi_application_php::default]"
-  ]
-}
+Is the specialized version of cespi_application for PHP apps doing the following
+tasks:
+
+* Creates a chroot directory
+* Creates log directories for nginx & pfp-fpm services inside chrooted
+  environment
+* Deploys application, but if **deploy** parameter is set to false, it creates an empty applications
+  directory
+* Creates link inside application's user home directory pointing to applications
+  directory & logs
+* Configures php-fpm pool & nginx site
+
+#### Relevant parameters are:
+
+* **path**: root applications chrooted directory
+* **relative_path**: directory relative to **path** where application will be
+  deployed. It defaults to **app**
+* **nginx_config**: hash to be merged with default values. This values are defined as a hash of:
+  * **key** is vhost file name, it will namespaced with cespi_application name attribute
+  * **value** is a hash of nginx options. Most values can be overwritten. Custom options are:
+    * **relative_document_root:** as deploy resource will create a current symlink, then specified path
+      for this option must be a relative project path: by default we asume it is `web/`
+* **php_fpm_config**: hash to be merged with default values shown in following
+  table . Most values wont need to be overwritten
+
 ```
+# PHP-fpm default values
 
-## Contributing
+   "user"                          => new_resource.user,
+   "group"                         => new_resource.group,
+   "prefix"                        => new_resource.path,
+   "chroot"                        => new_resource.path,
+   "chdir"                         => "/", 
+   "listen"                        => fpm_relative_socket,
+   "access.log"                    => fpm_log,
+   "access.format"                 => "%R - %u %t \'%m %r%Q%q\' %s %f %{mili}d %{kilo}M %C%%",
+   "listen.backlog"                => "-1",
+   "listen.owner"                  => new_resource.user,
+   "listen.group"                  => www_group,
+   "listen.mode"                   => "0660",
+   "pm"                            => "dynamic",
+   "pm.max_children"               => "10",
+   "pm.start_servers"              => "4", 
+   "pm.min_spare_servers"          => "2", 
+   "pm.max_spare_servers"          => "6", 
+   "pm.process_idle_timeout"       => "10s",
+   "pm.max_requests"               => "500",
+   "pm.status_path"                => "/status",
+   "ping.path"                     => "/ping",
+   "ping.response"                 => "/pong",
+   "security.limit_extensions"     => ".php",
+   "env[TMP]"                      => "/tmp",
+   "env[TMPDIR]"                   => "/tmp",
+   "env[TEMP]"                     => "/tmp",
+   "php_value[session.save_path]"  => session_dir
+```
+Where:
+* new_resource.user is user parameter
+* new_resource.path is path parameter 
+* fpm_relative_socket is `run/php5-fpm.socket`
+* fpm_log is `new_resource_path/log/fpm/access.log`
+* www_group is nginx group
+* session_dir is `var/lib/session/php` relative to chrooted environment
 
-1. Fork the repository on Github
-2. Create a named feature branch (i.e. `add-new-recipe`)
-3. Write your change
-4. Write tests for your change (if applicable)
-5. Run the tests, ensuring they all pass
-6. Submit a Pull Request
+### Resource `cespi_application_php_symfony`
 
-## License and Authors
+Specific symfony deploy resource. It provides for example symfony clear_cache
+helper that can be used inside resource
+It also configures some predefined options
 
-Author:: YOUR_NAME (<YOUR_EMAIL>)
+## Recipes
+
+### Recipe `cespi_application_php::install`
+
+Installs all requirements
