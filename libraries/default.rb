@@ -25,6 +25,8 @@ class CespiApplicationPhp
       klass.attribute :create_dirs_before_symlink, :kind_of => Array, :default => []
       klass.attribute :force_deploy, :kind_of => [TrueClass,FalseClass], :default => false
 
+      klass.attribute :log_dir, :kind_of => String, :default => 'log'
+
       # Chrooted environment
       klass.attribute :path, :kind_of => String, required: true
       klass.attribute :copy_files, :kind_of => [Array,String], :default => []

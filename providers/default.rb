@@ -1,3 +1,7 @@
+include CespiApplication::Logrotate
+
+attr_accessor :www_logs
+
 action :install do
 
   cespi_application_php_chroot new_resource.path do
@@ -66,6 +70,8 @@ action :install do
 
   nginx_create_configuration
 
+  logrotate
+
 end
 
 action :remove do
@@ -82,6 +88,8 @@ action :remove do
     group new_resource.group
     action :remove
   end
+
+  logrotate false
 end
 
 
@@ -103,6 +111,26 @@ end
 
 def www_log_dir
   ::File.join(new_resource.path,'log','nginx')
+end
+
+def logrotate_service_logs
+  Array(self.www_logs) + [fpm_log]
+end
+
+def nginx_pid
+  node['nginx']['pid']
+end
+
+def php_fpm_pid
+  config = JSON.parse node["php_fpm"]["config"]
+  config['config']['pid']
+end
+
+def logrotate_postrotate
+  <<-CMD
+    [ ! -f #{nginx_pid} ] || kill -USR1 `cat #{nginx_pid}`
+    [ ! -f #{php_fpm_pid} ] || kill -USR1 `cat #{php_fpm_pid}`
+  CMD
 end
 
 def www_user
@@ -168,6 +196,7 @@ def php_fpm_pool(template_action = :create)
     "php_value[session.save_path]"  => session_dir
   }.merge(new_resource.php_fpm_config)
 
+
   template "#{node[:php_fpm][:pools_path]}/#{new_resource.name}.conf" do
     source "fpm_pool.erb"
     cookbook 'cespi_application_php'
@@ -181,6 +210,7 @@ def php_fpm_pool(template_action = :create)
 end
 
 def nginx_create_configuration(template_action=:create)
+  self.www_logs = Array(self.www_logs)
   new_resource.nginx_config.each do |app_name,options|
     name = "#{new_resource.name}_#{app_name}"
     conf = {
@@ -222,6 +252,9 @@ def nginx_create_configuration(template_action=:create)
       "root"      => nginx_document_root(options['relative_document_root']),
       "site_type" => "dynamic"
     }.merge(options)
+
+    self.www_logs << conf["options"]["access_log"]
+    self.www_logs << conf["options"]["error_log"]
 
     node.set['cespi_application']['server_names'] = (node['cespi_application']['server_names'] + [ conf['server_name'] ]).uniq
     node.save unless Chef::Config[:solo]
