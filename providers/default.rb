@@ -117,6 +117,10 @@ def logrotate_service_logs
   Array(self.www_logs) + [fpm_log]
 end
 
+def logrotate_application_logs
+  ::File.join(new_resource.path, new_resource.relative_path, 'shared', new_resource.log_dir, '*.log')
+end
+
 def nginx_pid
   node['nginx']['pid']
 end
