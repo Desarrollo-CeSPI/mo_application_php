@@ -72,9 +72,13 @@ action :install do
 
   logrotate
 
+  sudo_reload :install
+
 end
 
 action :remove do
+  sudo_reload :remove
+
   php_fpm_pool :delete
 
   nginx_create_configuration :delete
@@ -287,5 +291,13 @@ def nginx_create_configuration(template_action=:create)
       precedence conf['precedence']
       site_type conf['site_type'].to_sym
     end
+  end
+end
+
+def sudo_reload(to_do)
+  sudo "php_fpm reload #{new_resource.user}" do
+    user      new_resource.user
+    commands  ["/sbin/restart #{node[:php_fpm][:package]}"]
+    action to_do
   end
 end
