@@ -246,7 +246,7 @@ def nginx_create_configuration(template_action=:create)
         },
         %q(~ ^/(status|ping)$) => {
           "access_log"    => "off",
-          "allow"         => "127.0.0.1",
+          "allow"         => node['cespi_application_php']['status']['allow'],
           "deny"          => "all",
           "include"       => "fastcgi_params",
           "fastcgi_pass"  => "unix:#{fpm_socket}"
