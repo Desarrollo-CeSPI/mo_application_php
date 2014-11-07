@@ -295,9 +295,11 @@ def nginx_create_configuration(template_action=:create)
 end
 
 def sudo_reload(to_do)
-  sudo "php_fpm reload #{new_resource.user}" do
+  sudo "php_fpm_reload_#{new_resource.user}" do
     user      new_resource.user
-    commands  ["/sbin/restart #{node[:php_fpm][:package]}"]
+    runas     'root'
+    commands  ["/usr/sbin/service #{node[:php_fpm][:package]} restart"]
+    nopasswd  true
     action to_do
   end
 end

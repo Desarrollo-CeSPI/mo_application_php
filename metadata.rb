@@ -4,7 +4,7 @@ maintainer_email 'car@cespi.unlp.edu.ar lditommaso@cespi.unlp.edu.ar'
 license          'All rights reserved'
 description      'Installs/Configures cespi_application_php'
 long_description 'Installs/Configures cespi_application_php'
-version          '0.1.6'
+version          '0.1.9'
 
 depends         'cespi_application',  '~> 0.1.1'
 depends         'hostsfile',          '~> 2.4.5'
