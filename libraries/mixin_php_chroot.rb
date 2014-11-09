@@ -1,4 +1,4 @@
-class CespiApplicationPhp
+class MoApplicationPhp
   module ChrootResourceBase
     def self.included(klass)
       require 'chef/mixin/shell_out'

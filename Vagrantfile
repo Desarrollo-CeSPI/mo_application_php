@@ -13,7 +13,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define 'app' do |app|
-    app.vm.hostname = "cespi-application-php.vagrant.desarrollo.unlp.edu.ar"
+    app.vm.hostname = "mo-application-php.vagrant.desarrollo.unlp.edu.ar"
     app.omnibus.chef_version = :latest
     app.vm.box = "chef/ubuntu-12.04"
     app.vm.network :private_network, ip: "10.101.4.3"
@@ -23,7 +23,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       }
       chef.run_list = [
         "recipe[apt::default]",
-        "recipe[cespi_application_php::install]"
+        "recipe[mo_application_php::install]"
       ]
     end
   end

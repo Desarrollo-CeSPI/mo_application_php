@@ -1,4 +1,4 @@
-include ::CespiApplicationPhp::DefaultResourceBase
+include ::MoApplicationPhp::DefaultResourceBase
 
 def initialize(name, run_context=nil)
   super

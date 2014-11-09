@@ -1,6 +1,6 @@
 # 0.1.0
 
-Initial release of cespi_application_php
+Initial release of mo_application_php
 
 * Enhancements
   * an enhancement

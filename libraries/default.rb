@@ -1,7 +1,7 @@
-class CespiApplicationPhp
+class MoApplicationPhp
   module DefaultResourceBase
     def self.included(klass)
-      klass.send :include, CespiApplicationPhp::ChrootResourceBase
+      klass.send :include, MoApplicationPhp::ChrootResourceBase
       klass.actions :install, :remove
       klass.default_action :install
 
@@ -35,7 +35,7 @@ class CespiApplicationPhp
       klass.attribute :php_fpm_config, :kind_of => Hash, :default => Hash.new
 
       # Nginx configurations: must define a hash of:
-      #   * key is vhost file name, it will namespaced with cespi_application name attribute
+      #   * key is vhost file name, it will namespaced with mo_application name attribute
       #   * value of nginx options. Most values can be overwritten. 
       #     Custom options are:
       #     + relative_document_root: as deploy resource will create a current symlink, then specified path
@@ -50,7 +50,7 @@ class CespiApplicationPhp
     end
 
     def php_command
-      node['cespi_application_php']['command']
+      node['mo_application_php']['command']
     end
 
   end

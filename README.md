@@ -1,14 +1,14 @@
-# cespi_application_php-cookbook
+# mo_application_php-cookbook
 
-LWRP that extends [cespi_application](https://git.cespi.unlp.edu.ar/produccion/cespi_application) for PHP applications
+LWRP that extends mo_application for PHP applications
 
 ## Usage
 
 Just include this recipe as a dependency and use provided LWRPs:
 
-### Resource `cespi_application_php`
+### Resource `mo_application_php`
 
-Is the specialized version of cespi_application for PHP apps doing the following
+Is the specialized version of mo_application for PHP apps doing the following
 tasks:
 
 * Creates a chroot directory
@@ -26,7 +26,7 @@ tasks:
 * **relative_path**: directory relative to **path** where application will be
   deployed. It defaults to **app**
 * **nginx_config**: hash to be merged with default values. This values are defined as a hash of:
-  * **key** is vhost file name, it will namespaced with cespi_application name attribute
+  * **key** is vhost file name, it will namespaced with mo_application name attribute
   * **value** is a hash of nginx options. Most values can be overwritten. Custom options are:
     * **relative_document_root:** as deploy resource will create a current symlink, then specified path
       for this option must be a relative project path: by default we asume it is `web/`
@@ -72,7 +72,7 @@ Where:
 * www_group is nginx group
 * session_dir is `var/lib/session/php` relative to chrooted environment
 
-### Resource `cespi_application_php_symfony`
+### Resource `mo_application_php_symfony`
 
 Specific symfony deploy resource. It provides for example symfony clear_cache
 helper that can be used inside resource
@@ -80,7 +80,7 @@ It also configures some predefined options
 
 ## Recipes
 
-### Recipe `cespi_application_php::install`
+### Recipe `mo_application_php::install`
 
 Installs all requirements
 

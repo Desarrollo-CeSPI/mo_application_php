@@ -1,16 +1,16 @@
-include CespiApplication::Logrotate
+include MoApplication::Logrotate
 
 attr_accessor :www_logs
 
 action :install do
 
-  cespi_application_php_chroot new_resource.path do
+  mo_application_php_chroot new_resource.path do
     copy_files new_resource.copy_files
   end
 
   fix_chroot
 
-  cespi_application_user new_resource.user do
+  mo_application_user new_resource.user do
     group new_resource.group
     ssh_keys new_resource.ssh_keys
   end
@@ -33,7 +33,7 @@ action :install do
 
   if new_resource.deploy
 
-    cespi_application_deploy new_resource.name do
+    mo_application_deploy new_resource.name do
       user                        new_resource.user
       group                       new_resource.group
       path                        ::File.join(new_resource.path,new_resource.relative_path)
@@ -83,12 +83,12 @@ action :remove do
 
   nginx_create_configuration :delete
 
-  cespi_application_php_chroot new_resource.path do
+  mo_application_php_chroot new_resource.path do
     copy_files new_resource.copy_files
     action :remove
   end
 
-  cespi_application_user new_resource.user do
+  mo_application_user new_resource.user do
     group new_resource.group
     action :remove
   end
@@ -207,7 +207,7 @@ def php_fpm_pool(template_action = :create)
 
   template "#{node[:php_fpm][:pools_path]}/#{new_resource.name}.conf" do
     source "fpm_pool.erb"
-    cookbook 'cespi_application_php'
+    cookbook 'mo_application_php'
     variables(
       name: new_resource.name,
       options: options
@@ -246,7 +246,7 @@ def nginx_create_configuration(template_action=:create)
         },
         %q(~ ^/(status|ping)$) => {
           "access_log"    => "off",
-          "allow"         => node['cespi_application_php']['status']['allow'],
+          "allow"         => node['mo_application_php']['status']['allow'],
           "deny"          => "all",
           "include"       => "fastcgi_params",
           "fastcgi_pass"  => "unix:#{fpm_socket}"
@@ -264,11 +264,11 @@ def nginx_create_configuration(template_action=:create)
     self.www_logs << conf["options"]["access_log"]
     self.www_logs << conf["options"]["error_log"]
 
-    node.set['cespi_application']['server_names'] = (node['cespi_application']['server_names'] + [ conf['server_name'] ]).uniq
+    node.set['mo_application']['server_names'] = (node['mo_application']['server_names'] + [ conf['server_name'] ]).uniq
     node.save unless Chef::Config[:solo]
     hostsfile_entry node.ipaddress do
       hostname  node.fqdn
-      aliases   node['cespi_application']['server_names']
+      aliases   node['mo_application']['server_names']
       action    :create
     end
 

@@ -1,4 +1,4 @@
-include ::CespiApplicationPhp::DefaultResourceBase
+include ::MoApplicationPhp::DefaultResourceBase
 
 def initialize(name, run_context=nil)
   super
@@ -20,7 +20,7 @@ def initialize(name, run_context=nil)
     "config/databases.yml"              => "config/databases.yml",
     "config/app.yml"                    => "config/app.yml",
   }
-  @provider = lookup_provider_constant :cespi_application_php
+  @provider = lookup_provider_constant :mo_application_php
 end
 
 def clear_cache
