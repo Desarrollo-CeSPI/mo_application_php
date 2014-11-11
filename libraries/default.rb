@@ -24,6 +24,9 @@ class MoApplicationPhp
       klass.attribute :shared_files, :kind_of => Hash, :default => Hash.new
       klass.attribute :create_dirs_before_symlink, :kind_of => Array, :default => []
       klass.attribute :force_deploy, :kind_of => [TrueClass,FalseClass], :default => false
+      klass.attribute :ssh_wrapper, :kind_of => String
+      klass.attribute :ssh_private_key, :kind_of => String
+
 
       klass.attribute :log_dir, :kind_of => String, :default => 'log'
 

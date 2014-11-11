@@ -31,6 +31,8 @@ action :install do
     group new_resource.group
   end
 
+  setup_ssh
+
   if new_resource.deploy
 
     mo_application_deploy new_resource.name do
@@ -45,6 +47,7 @@ action :install do
       shared_files                new_resource.shared_files
       create_dirs_before_symlink  new_resource.create_dirs_before_symlink
       force_deploy                new_resource.force_deploy
+      ssh_wrapper                 new_resource.ssh_wrapper
       before_deploy(&new_resource.callback_before_deploy) if new_resource.callback_before_deploy
     end
 
@@ -301,5 +304,24 @@ def sudo_reload(to_do)
     commands  ["/usr/sbin/service #{node[:php_fpm][:package]} restart"]
     nopasswd  true
     action to_do
+  end
+end
+
+def setup_ssh
+  directory "/home/#{new_resource.user}/.ssh" do
+    action :create
+    owner new_resource.user
+    group new_resource.group
+    recursive true
+  end
+
+  template "/home/#{new_resource.user}/.ssh/id_rsa" do
+    source "ssh_private_key.erb"
+    cookbook 'mo_application_php'
+    variables(
+      private_key: new_resource.ssh_private_key
+    )
+    owner new_resource.user
+    mode 0600
   end
 end
