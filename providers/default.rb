@@ -1,6 +1,6 @@
 include MoApplication::Logrotate
-
-attr_accessor :www_logs
+include MoApplication::SetupSSH
+include MoApplication::Nginx
 
 action :install do
 
@@ -116,20 +116,12 @@ def session_dir
   ::File.join('','var','lib','session','php')
 end
 
-def www_log_dir
-  ::File.join(new_resource.path,'log','nginx')
-end
-
 def logrotate_service_logs
   Array(self.www_logs) + [fpm_log]
 end
 
 def logrotate_application_logs
   ::File.join(new_resource.path, new_resource.relative_path, 'shared', new_resource.log_dir, '*.log')
-end
-
-def nginx_pid
-  node['nginx']['pid']
 end
 
 def php_fpm_pid
@@ -144,13 +136,6 @@ def logrotate_postrotate
   CMD
 end
 
-def www_user
-  node['nginx']['user']
-end
-
-def www_group
-  node['nginx']['group']
-end
 
 def fpm_log_dir
   ::File.join(new_resource.path,'log','fpm')
@@ -220,81 +205,46 @@ def php_fpm_pool(template_action = :create)
   end
 end
 
-def nginx_create_configuration(template_action=:create)
-  self.www_logs = Array(self.www_logs)
-  new_resource.nginx_config.each do |app_name,options|
-    name = "#{new_resource.name}_#{app_name}"
-    conf = {
-      "action"    => template_action,
-      "listen"    => "80",
-      "locations" => {
-        %q(/) => {
-          "try_files"     => "$uri $uri/ /index.php?$args"
-        },
-        %q(~* \.(jpg|jpeg|gif|html|png|css|js|ico|txt|xml)$) => {
-          "access_log"    => "off",
-          "log_not_found" => "off",
-          "expires"       => "365d"
-        },
-        %q(~* \.php$) => {
-          "try_files"     => "$uri /index.php",
-          "fastcgi_index" => "index.php",
-          "fastcgi_pass"  => "unix:#{fpm_socket}",
-          "include"       => "fastcgi_params",
+def nginx_options_for(action, name, options)
+  {
+    "action"    => action,
+    "listen"    => "80",
+    "locations" => {
+      %q(/) => {
+        "try_files"     => "$uri $uri/ /index.php?$args"
+      },
+      %q(~* \.(jpg|jpeg|gif|html|png|css|js|ico|txt|xml)$) => {
+        "access_log"    => "off",
+        "log_not_found" => "off",
+        "expires"       => "365d"
+      },
+      %q(~* \.php$) => {
+        "try_files"     => "$uri /index.php",
+        "fastcgi_index" => "index.php",
+        "fastcgi_pass"  => "unix:#{fpm_socket}",
+        "include"       => "fastcgi_params",
           "fastcgi_param" => [
             %Q(SCRIPT_FILENAME  #{fpm_document_root options['relative_document_root'] }$fastcgi_script_name),
             %Q(SCRIPT_NAME $fastcgi_script_name),
             %Q(DOCUMENT_ROOT #{fpm_document_root options['relative_document_root']})
-          ]
-        },
-        %q(~ ^/(status|ping)$) => {
-          "access_log"    => "off",
-          "allow"         => node['mo_application_php']['status']['allow'],
-          "deny"          => "all",
-          "include"       => "fastcgi_params",
-          "fastcgi_pass"  => "unix:#{fpm_socket}"
-        }
+        ]
       },
-      "options" => {
-        "index"       => "index.php index.html index.htm",
-        "access_log"  => ::File.join(www_log_dir, "#{name}-access.log"),
-        "error_log"   => ::File.join(www_log_dir, "#{name}-error.log"),
-      },
-      "root"      => nginx_document_root(options['relative_document_root']),
-      "site_type" => "dynamic"
-    }.merge(options)
-
-    self.www_logs << conf["options"]["access_log"]
-    self.www_logs << conf["options"]["error_log"]
-
-    node.set['mo_application']['server_names'] = (node['mo_application']['server_names'] + [ conf['server_name'] ]).uniq
-    node.save unless Chef::Config[:solo]
-    hostsfile_entry node.ipaddress do
-      hostname  node.fqdn
-      aliases   node['mo_application']['server_names']
-      action    :create
-    end
-
-    nginx_conf_file name do
-      action conf['action']
-      block conf['block']
-      cookbook conf['cookbook']
-      listen conf['listen']
-      locations conf['locations']
-      options conf['options']
-      upstream conf['upstream']
-      reload conf['reload']
-      root conf['root']
-      server_name conf['server_name']
-      conf_name conf['conf_name']
-      socket conf['socket']
-      template conf['template']
-      auto_enable_site conf['auto_enable_site']
-      ssl conf['ssl']
-      precedence conf['precedence']
-      site_type conf['site_type'].to_sym
-    end
-  end
+      %q(~ ^/(status|ping)$) => {
+        "access_log"    => "off",
+        "allow"         => node['mo_application_php']['status']['allow'],
+        "deny"          => "all",
+        "include"       => "fastcgi_params",
+        "fastcgi_pass"  => "unix:#{fpm_socket}"
+      }
+    },
+    "options" => {
+      "index"       => "index.php index.html index.htm",
+      "access_log"  => ::File.join(www_log_dir, "#{name}-access.log"),
+      "error_log"   => ::File.join(www_log_dir, "#{name}-error.log"),
+    },
+    "root"      => nginx_document_root(options['relative_document_root']),
+    "site_type" => "dynamic"
+  }
 end
 
 def sudo_reload(to_do)
@@ -307,21 +257,3 @@ def sudo_reload(to_do)
   end
 end
 
-def setup_ssh
-  directory "/home/#{new_resource.user}/.ssh" do
-    action :create
-    owner new_resource.user
-    group new_resource.group
-    recursive true
-  end
-
-  template "/home/#{new_resource.user}/.ssh/id_rsa" do
-    source "ssh_private_key.erb"
-    cookbook 'mo_application_php'
-    variables(
-      private_key: new_resource.ssh_private_key
-    )
-    owner new_resource.user
-    mode 0600
-  end
-end
