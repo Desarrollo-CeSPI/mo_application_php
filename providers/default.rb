@@ -157,10 +157,6 @@ def fpm_document_root(relative_path)
   ::File.join '', new_resource.relative_path, 'current', (relative_path || 'web')
 end
 
-def nginx_document_root(relative_path)
-  ::File.join new_resource.path, fpm_document_root(relative_path)
-end
-
 def php_fpm_pool(template_action = :create)
   options = {
     "user"                          => new_resource.user,
@@ -242,7 +238,7 @@ def nginx_options_for(action, name, options)
       "access_log"  => ::File.join(www_log_dir, "#{name}-access.log"),
       "error_log"   => ::File.join(www_log_dir, "#{name}-error.log"),
     },
-    "root"      => nginx_document_root(options['relative_document_root']),
+    "root"      => nginx_document_root(fpm_document_root(options['relative_document_root'])),
     "site_type" => "dynamic"
   }
 end
