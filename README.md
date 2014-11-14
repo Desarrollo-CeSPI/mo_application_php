@@ -84,5 +84,3 @@ It also configures some predefined options
 
 Installs all requirements
 
-## TODO
-* php-fpm dependency cookbook restarts service on every chef-run. See [Reported BUG](https://github.com/stajkowski/php5-fpm/issues/2)
