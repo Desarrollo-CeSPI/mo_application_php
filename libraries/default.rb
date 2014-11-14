@@ -5,7 +5,6 @@ class MoApplicationPhp
       klass.send :include, MoApplication::DeployResourceBase
 
       # Chrooted environment
-      klass.attribute :path, :kind_of => String, required: true
       klass.attribute :copy_files, :kind_of => [Array,String], :default => []
 
       # PHP-fpm options
