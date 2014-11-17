@@ -15,7 +15,7 @@ action :install do
     ssh_keys new_resource.ssh_keys
   end
 
-  directory ::File.join(new_resource.path,session_dir) do
+  directory full_session_dir do
     owner new_resource.user
     group new_resource.group
     recursive true
@@ -75,12 +75,18 @@ action :install do
 
   logrotate
 
+  setup_cron_php_session :create
+
   sudo_reload :install
+
+
 
 end
 
 action :remove do
   sudo_reload :remove
+
+  setup_cron_php_session :delete
 
   php_fpm_pool :delete
 
@@ -253,3 +259,15 @@ def sudo_reload(to_do)
   end
 end
 
+def setup_cron_php_session(to_do)
+  cron "php_fpm_session_#{new_resource.user}" do
+    minute "09,39"
+    user new_resource.user
+    command "[ -x /usr/lib/php5/maxlifetime ] && [ -d #{full_session_dir} ] && find #{full_session_dir} -depth -mindepth 1 -maxdepth 1 -type f ! -execdir fuser -s {} \; -cmin +$(/usr/lib/php5/maxlifetime) -delete"
+    action to_do
+  end
+end
+
+def full_session_dir
+  ::File.join(new_resource.path,session_dir)
+end
