@@ -209,28 +209,30 @@ end
 
 def nginx_options_for(action, name, options)
   {
+    "root"      => nginx_document_root(fpm_document_root(options['relative_document_root'])),
+    "site_type" => "dynamic",
     "action"    => action,
     "listen"    => "80",
     "locations" => {
       %q(/) => {
-        "try_files"     => "$uri $uri/ /index.php?$args"
+        "index"     => "index.php",
+        "try_files"     => "$uri /index.php?$args",
       },
-      %q(~* \.(jpg|jpeg|gif|html|png|css|js|ico|txt|xml)$) => {
+      %q(~* \.(ico|css|gif|jpe?g|png|js)(\?[0-9]+)?$) => {
         "access_log"    => "off",
         "log_not_found" => "off",
-        "expires"       => "365d"
+        "expires"       => "max",
+        "break"         => nil,
       },
-      %q(~* \.php$) => {
-        "try_files"     => "$uri /index.php",
-        "fastcgi_index" => "index.php",
+      %Q(~ ^/#{options['php_filename'] || "(index|frontend|backend)"}\\.php$ ) => {
+        "include" => "fastcgi_params",
+        "fastcgi_split_path_info" => '^(.+\.php)(/.+)$',
         "fastcgi_pass"  => "unix:#{fpm_socket}",
-        "include"       => "fastcgi_params",
-          "fastcgi_param" => [
-            %Q(SCRIPT_FILENAME  #{fpm_document_root options['relative_document_root'] }$fastcgi_script_name),
-            %Q(SCRIPT_NAME $fastcgi_script_name),
-            %Q(DOCUMENT_ROOT #{fpm_document_root options['relative_document_root']})
-        ]
-      },
+        "fastcgi_param" => [
+          "PATH_INFO $fastcgi_path_info",
+          "PATH_TRANSLATED $document_root$fastcgi_path_info"
+        ],
+      }.merge(options['allow'] ? {'allow' => options['allow'], 'deny' => 'all'}: {}),
       %q(~ ^/(status|ping)$) => {
         "access_log"    => "off",
         "allow"         => node['mo_application_php']['status']['allow'],
@@ -240,12 +242,9 @@ def nginx_options_for(action, name, options)
       }
     },
     "options" => {
-      "index"       => "index.php index.html index.htm",
       "access_log"  => ::File.join(www_log_dir, "#{name}-access.log"),
       "error_log"   => ::File.join(www_log_dir, "#{name}-error.log"),
     },
-    "root"      => nginx_document_root(fpm_document_root(options['relative_document_root'])),
-    "site_type" => "dynamic"
   }
 end
 
@@ -263,7 +262,7 @@ def setup_cron_php_session(to_do)
   cron "php_fpm_session_#{new_resource.user}" do
     minute "09,39"
     user new_resource.user
-    command "[ -x /usr/lib/php5/maxlifetime ] && [ -d #{full_session_dir} ] && find #{full_session_dir} -depth -mindepth 1 -maxdepth 1 -type f ! -execdir fuser -s {} \; -cmin +$(/usr/lib/php5/maxlifetime) -delete"
+    command "[ -x /usr/lib/php5/maxlifetime ] && [ -d #{full_session_dir} ] && find #{full_session_dir} -depth -mindepth 1 -maxdepth 1 -type f ! -execdir fuser -s {} \\; -cmin +$(/usr/lib/php5/maxlifetime) -delete"
     action to_do
   end
 end
