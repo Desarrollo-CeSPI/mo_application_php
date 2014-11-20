@@ -186,7 +186,6 @@ def php_fpm_pool(template_action = :create)
     "pm.max_requests"               => "500",
     "pm.status_path"                => "/status",
     "request_terminate_timeout"     => "120s",
-    "catch_workers_output"          => "yes",
     "ping.path"                     => "/ping",
     "ping.response"                 => "/pong",
     "security.limit_extensions"     => ".php",
