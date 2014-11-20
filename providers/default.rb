@@ -185,6 +185,8 @@ def php_fpm_pool(template_action = :create)
     "pm.process_idle_timeout"       => "10s",
     "pm.max_requests"               => "500",
     "pm.status_path"                => "/status",
+    "request_terminate_timeout"     => "120s",
+    "catch_workers_output"          => "yes",
     "ping.path"                     => "/ping",
     "ping.response"                 => "/pong",
     "security.limit_extensions"     => ".php",
@@ -215,8 +217,7 @@ def nginx_options_for(action, name, options)
     "listen"    => "80",
     "locations" => {
       %q(/) => {
-        "index"     => "index.php",
-        "try_files"     => "$uri /index.php?$args",
+        "try_files"     => "/mantenimiento.html $uri $uri/ /index.php$uri?$args"
       },
       %q(~* \.(ico|css|gif|jpe?g|png|js)(\?[0-9]+)?$) => {
         "access_log"    => "off",
@@ -224,13 +225,16 @@ def nginx_options_for(action, name, options)
         "expires"       => "max",
         "break"         => nil,
       },
-      %Q(~ ^/#{options['php_filename'] || "(index|frontend|backend)"}\\.php$ ) => {
+      %Q(~ ^/#{options['php_filename'] || "(index|frontend|backend)"}\\.php($|/) ) => {
+        "if" => {
+          "!-f $document_root$fastcgi_script_name" => { "return" => "404" }
+        },
         "include" => "fastcgi_params",
-        "fastcgi_split_path_info" => '^(.+\.php)(/.+)$',
+        "fastcgi_split_path_info" => '^(.+?\.php)(/.*)$',
         "fastcgi_pass"  => "unix:#{fpm_socket}",
         "fastcgi_param" => [
-          "PATH_INFO $fastcgi_path_info",
-          "PATH_TRANSLATED $document_root$fastcgi_path_info"
+          "SCRIPT_FILENAME $document_root$fastcgi_script_name",
+          "PATH_INFO $fastcgi_path_info"
         ],
       }.merge(options['allow'] ? {'allow' => options['allow'], 'deny' => 'all'}: {}),
       %q(~ ^/(status|ping)$) => {
@@ -242,8 +246,18 @@ def nginx_options_for(action, name, options)
       }
     },
     "options" => {
+      "index"     => "index.php",
       "access_log"  => ::File.join(www_log_dir, "#{name}-access.log"),
       "error_log"   => ::File.join(www_log_dir, "#{name}-error.log"),
+      # this rewrites all the requests to the maintenance.html
+      # page if it exists in the doc root. This is for capistrano's
+      # disable web task
+      "if" => {
+        "-f $document_root/mantenimiento.html" => {
+          "rewrite" =>  "^(.*)$  /mantenimiento.html last",
+          "break" => nil,
+        }
+     },
     },
   }
 end

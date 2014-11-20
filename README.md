@@ -33,6 +33,9 @@ tasks:
 * **php_fpm_config**: hash to be merged with default values shown in following
   table . Most values wont need to be overwritten
 
+If applications document root includes a file named `mantenimiento.html` it will
+be served as first resource in any cases
+
 ```
 # PHP-fpm default values
 

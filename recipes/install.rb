@@ -1,5 +1,6 @@
 include_recipe 'mo_application::install'
 include_recipe 'php5-fpm::install'
+include_recipe 'php5-fpm::configure_fpm'
 include_recipe 'wkhtmltox::default'
 include_recipe 'mo_application_php::_fix_php_fpm_pools'
 
