@@ -3,6 +3,8 @@ class MoApplicationPhp
     def self.included(klass)
       require 'chef/mixin/shell_out'
       klass.send(:include , Chef::Mixin::ShellOut)
+      klass.attribute :copy_files, :kind_of => [Array,String], :default => []
+      klass.attribute :chroot, :kind_of => [TrueClass,FalseClass], :default => false
     end
     # php requirements for php-fpm chroot are:
     #   * php-cli required files

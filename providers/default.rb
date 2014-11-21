@@ -4,34 +4,58 @@ include MoApplication::Nginx
 
 action :install do
 
-  mo_application_php_chroot new_resource.path do
-    copy_files new_resource.copy_files
-  end
-
-  fix_chroot
-
   mo_application_user new_resource.user do
     group new_resource.group
     ssh_keys new_resource.ssh_keys
   end
 
+  if new_resource.chroot
+
+    mo_application_php_chroot new_resource.path do
+      copy_files new_resource.copy_files
+    end
+
+    fix_chroot
+
+  else
+
+    directory new_resource.path do
+      recursive true
+      owner new_resource.user
+      owner www_group
+      mode 0750
+    end
+
+    directory ::File.join(new_resource.path, new_resource.relative_path) do
+      owner new_resource.user
+      owner www_group
+      mode 0750
+    end
+
+  end
+
   directory full_session_dir do
     owner new_resource.user
     group new_resource.group
+    mode 0750
     recursive true
   end
 
   directory www_log_dir do
     owner www_user
     group www_group
+    mode 0750
+    recursive true
   end
 
   directory fpm_log_dir do
     owner new_resource.user
     group new_resource.group
+    mode 0750
+    recursive true
   end
 
-  setup_ssh
+  setup_ssh new_resource.user, new_resource.group, new_resource.ssh_private_key
 
   if new_resource.deploy
 
@@ -168,9 +192,8 @@ def php_fpm_pool(template_action = :create)
     "user"                          => new_resource.user,
     "group"                         => new_resource.group,
     "prefix"                        => new_resource.path,
-    "chroot"                        => new_resource.path,
     "chdir"                         => "/",
-    "listen"                        => fpm_relative_socket,
+    "listen"                        => new_resource.chroot ? fpm_relative_socket :  fpm_socket,
     "access.log"                    => fpm_log,
     "access.format"                 => "%R - %u %t \'%m %r%Q%q\' %s %f %{mili}d %{kilo}M %C%%",
     "listen.backlog"                => "-1",
@@ -192,8 +215,8 @@ def php_fpm_pool(template_action = :create)
     "env[TMP]"                      => "/tmp",
     "env[TMPDIR]"                   => "/tmp",
     "env[TEMP]"                     => "/tmp",
-    "php_value[session.save_path]"  => session_dir
-  }.merge(new_resource.php_fpm_config)
+    "php_value[session.save_path]"  => new_resource.chroot ? session_dir : full_session_dir
+  }.merge(new_resource.chroot ?  {"chroot" => new_resource.path } : {}).merge(new_resource.php_fpm_config)
 
 
   template "#{node[:php_fpm][:pools_path]}/#{new_resource.name}.conf" do
@@ -216,7 +239,7 @@ def nginx_options_for(action, name, options)
     "listen"    => "80",
     "locations" => {
       %q(/) => {
-        "try_files"     => "/mantenimiento.html $uri $uri/ /index.php$uri?$args"
+        "try_files"     => "$uri $uri/ /index.php$uri?$args"
       },
       %q(~* \.(ico|css|gif|jpe?g|png|js)(\?[0-9]+)?$) => {
         "access_log"    => "off",
