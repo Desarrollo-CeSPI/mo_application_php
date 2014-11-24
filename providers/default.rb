@@ -22,13 +22,13 @@ action :install do
     directory new_resource.path do
       recursive true
       owner new_resource.user
-      owner www_group
+      group www_group
       mode 0750
     end
 
-    directory ::File.join(new_resource.path, new_resource.relative_path) do
+    directory ::File.dirname(fpm_socket) do
       owner new_resource.user
-      owner www_group
+      group www_group
       mode 0750
     end
 
@@ -75,13 +75,12 @@ action :install do
       before_deploy(&new_resource.callback_before_deploy) if new_resource.callback_before_deploy
     end
 
-  else
+  end
 
-    directory ::File.join(new_resource.path,new_resource.relative_path) do
-      owner new_resource.user
-      group new_resource.group
-    end
-
+  directory ::File.join(new_resource.path,new_resource.relative_path) do
+    owner new_resource.user
+    group www_group
+    mode 0750
   end
 
   link ::File.join('/home',new_resource.user,'application') do
