@@ -72,7 +72,9 @@ action :install do
       create_dirs_before_symlink  new_resource.create_dirs_before_symlink
       force_deploy                new_resource.force_deploy
       ssh_wrapper                 new_resource.ssh_wrapper
-      before_deploy(&new_resource.callback_before_deploy) if new_resource.callback_before_deploy
+      if new_resource.callback_before_deploy
+        before_deploy(&new_resource.callback_before_deploy) 
+      end
     end
 
   end
@@ -101,8 +103,6 @@ action :install do
   setup_cron_php_session :create
 
   sudo_reload :install
-
-
 
 end
 
@@ -217,7 +217,6 @@ def php_fpm_pool(template_action = :create)
     "php_value[session.save_path]"  => new_resource.chroot ? session_dir : full_session_dir
   }.merge(new_resource.chroot ?  {"chroot" => new_resource.path } : {}).merge(new_resource.php_fpm_config)
 
-
   template "#{node[:php_fpm][:pools_path]}/#{new_resource.name}.conf" do
     source "fpm_pool.erb"
     cookbook 'mo_application_php'
@@ -305,3 +304,4 @@ end
 def full_session_dir
   ::File.join(new_resource.path,session_dir)
 end
+

@@ -23,14 +23,3 @@ def initialize(name, run_context=nil)
   @provider = lookup_provider_constant :mo_application_php
 end
 
-def clear_cache
-  me = self
-  Proc.new do 
-    cmd = Mixlib::ShellOut.new("#{php_command} symfony cache:clear", 
-                               :user => me.user, 
-                               :env => nil, 
-                               :cwd => ::File.join(me.path, me.relative_path, 'current'))
-    cmd.run_command
-  end
-end
-
