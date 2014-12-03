@@ -43,7 +43,7 @@ action :install do
 
   directory www_log_dir do
     owner www_user
-    group www_group
+    group new_resource.group
     mode 0750
     recursive true
   end
@@ -85,11 +85,13 @@ action :install do
     mode 0750
   end
 
-  link ::File.join('/home',new_resource.user,'application') do
+  link "Home application shortcut for #{new_resource.user}" do
+    target_file lazy { ::File.join(::Dir.home(new_resource.user),"application") }
     to ::File.join(new_resource.path,new_resource.relative_path)
   end
 
-  link ::File.join('/home',new_resource.user,'log') do
+  link "Home log shortcut for #{new_resource.user}" do
+    target_file lazy { ::File.join(::Dir.home(new_resource.user),"log") }
     to ::File.join(new_resource.path,'log')
   end
 
