@@ -117,6 +117,7 @@ action :remove do
   mo_application_php_chroot new_resource.path do
     copy_files new_resource.copy_files
     action :remove
+    notifies :restart, "service[#{node[:php_fpm][:package]}]", :immediately
   end
 
   mo_application_user new_resource.user do
