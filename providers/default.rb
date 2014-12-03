@@ -85,16 +85,13 @@ action :install do
     mode 0750
   end
 
-  link "Home application shortcut for #{new_resource.user}" do
-    target_file lazy { ::File.join(::Dir.home(new_resource.user),"application") }
+  link ::File.join('/home',new_resource.user,'application') do
     to ::File.join(new_resource.path,new_resource.relative_path)
   end
 
-  link "Home log shortcut for #{new_resource.user}" do
-    target_file lazy { ::File.join(::Dir.home(new_resource.user),"log") }
+  link ::File.join('/home',new_resource.user,'log') do
     to ::File.join(new_resource.path,'log')
   end
-
 
   php_fpm_pool
 
