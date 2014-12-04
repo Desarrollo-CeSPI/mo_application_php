@@ -1,3 +1,4 @@
+use_inline_resources
 include MoApplication::Logrotate
 include MoApplication::SetupSSH
 include MoApplication::Nginx
@@ -114,6 +115,14 @@ action :remove do
 
   nginx_create_configuration :delete
 
+  service node[:php_fpm][:package] do
+      #Bug in 14.04 for service provider. Adding until resolved.
+      if (platform?('ubuntu') && node['platform_version'].to_f >= 14.04)
+          provider Chef::Provider::Service::Upstart
+      end
+      action :nothing
+  end
+
   mo_application_php_chroot new_resource.path do
     copy_files new_resource.copy_files
     action :remove
@@ -216,6 +225,14 @@ def php_fpm_pool(template_action = :create)
     "env[TEMP]"                     => "/tmp",
     "php_value[session.save_path]"  => new_resource.chroot ? session_dir : full_session_dir
   }.merge(new_resource.chroot ?  {"chroot" => new_resource.path } : {}).merge(new_resource.php_fpm_config)
+
+  service node[:php_fpm][:package] do
+      #Bug in 14.04 for service provider. Adding until resolved.
+      if (platform?('ubuntu') && node['platform_version'].to_f >= 14.04)
+          provider Chef::Provider::Service::Upstart
+      end
+      action :nothing
+  end
 
   template "#{node[:php_fpm][:pools_path]}/#{new_resource.name}.conf" do
     source "fpm_pool.erb"
