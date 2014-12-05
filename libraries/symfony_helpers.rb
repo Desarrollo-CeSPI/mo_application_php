@@ -36,4 +36,5 @@ def symfony_application(data, &before_deploy_block)
     nginx_config data['applications']
     before_deploy(&before_deploy_block)
   end
+  setup_dotenv data
 end
