@@ -23,3 +23,17 @@ def symfony_application_template(name, &block)
     t.notifies :run, "ruby_block[mo_symfony_clear_cache_#{new_resource.name}]"
   end
 end
+
+def symfony_application(data, &before_deploy_block)
+  mo_application_php_symfony data['id'] do
+    action data['action']
+    path data['path']
+    repo data['repo']
+    revision data['revision']
+    force_deploy data['force_deploy']
+    ssh_private_key data['ssh_private_key']
+    shared_files data['shared_files']
+    nginx_config data['applications']
+    before_deploy(&before_deploy_block)
+  end
+end
