@@ -34,6 +34,7 @@ def symfony_application(data, &before_deploy_block)
     ssh_private_key data['ssh_private_key']
     shared_files data['shared_files']
     nginx_config data['applications']
+    php_fpm_config data['php_fpm_config'] || Hash.new
     before_deploy(&before_deploy_block)
   end
   setup_dotenv data
