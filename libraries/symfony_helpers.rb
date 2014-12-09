@@ -37,5 +37,5 @@ def symfony_application(data, &before_deploy_block)
     php_fpm_config data['php_fpm_config'] || Hash.new
     before_deploy(&before_deploy_block)
   end
-  setup_dotenv data
+  setup_dotenv data unless data['action'] == 'remove'
 end
