@@ -58,6 +58,14 @@ action :install do
 
   setup_ssh new_resource.user, new_resource.group, new_resource.ssh_private_key
 
+  service node[:php_fpm][:package] do
+      #Bug in 14.04 for service provider. Adding until resolved.
+      if (platform?('ubuntu') && node['platform_version'].to_f >= 14.04)
+          provider Chef::Provider::Service::Upstart
+      end
+      action :nothing
+  end
+
   if new_resource.deploy
 
     mo_application_deploy new_resource.name do
@@ -76,6 +84,7 @@ action :install do
       if new_resource.callback_before_deploy
         before_deploy(&new_resource.callback_before_deploy) 
       end
+      notifies :restart, "service[#{node[:php_fpm][:package]}]"
     end
 
   end
@@ -226,13 +235,6 @@ def php_fpm_pool(template_action = :create)
     "php_value[session.save_path]"  => new_resource.chroot ? session_dir : full_session_dir
   }.merge(new_resource.chroot ?  {"chroot" => new_resource.path } : {}).merge(new_resource.php_fpm_config)
 
-  service node[:php_fpm][:package] do
-      #Bug in 14.04 for service provider. Adding until resolved.
-      if (platform?('ubuntu') && node['platform_version'].to_f >= 14.04)
-          provider Chef::Provider::Service::Upstart
-      end
-      action :nothing
-  end
 
   template "#{node[:php_fpm][:pools_path]}/#{new_resource.name}.conf" do
     source "fpm_pool.erb"
