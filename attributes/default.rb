@@ -1,5 +1,6 @@
-default["php_fpm"]["update_system"] = false
-default["php_fpm"]["upgrade_system"] = false
+default["hostupgrade"]["update_system"] = false
+default["hostupgrade"]["upgrade_system"] = false
+default["hostupgrade"]["first_time_only"] = false
 default["php_fpm"]["config"] = <<-JSON
 {  "config":
   {
