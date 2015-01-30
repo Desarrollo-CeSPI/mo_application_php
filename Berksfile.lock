@@ -1,19 +1,7 @@
 DEPENDENCIES
-  chef-msttcorefonts
-    git: https://github.com/captnswing/chef-msttcorefonts.git
-    revision: 9b1417077047cc8371fac51a0fd67c04f2959b87
-  hostsfile
-    git: https://github.com/customink-webops/hostsfile.git
-    revision: 66c203c5c34aec79ffe40dd98e228c11537f2582
   mo_application_php
     path: .
     metadata: true
-  nginx_conf
-    git: git://github.com/firebelly/chef-nginx_conf.git
-    revision: 7119d47ddef5ac6e4bfd93bfa8089684b161f54d
-  php5-fpm
-    git: https://github.com/stajkowski/php5-fpm.git
-    revision: d39c68acb1bb0cf1f2c127150bcc3bcbb550c2e4
 
 GRAPH
   apt (2.6.1)
@@ -36,7 +24,7 @@ GRAPH
   hostsfile (2.4.5)
   hostupgrade (0.1.3)
   logrotate (1.7.0)
-  mo_application (0.1.34)
+  mo_application (0.1.35)
     chef-msttcorefonts (~> 0.9.0)
     chef-sugar (~> 2.4.1)
     database (~> 2.3.1)
@@ -47,7 +35,7 @@ GRAPH
     nginx_conf (~> 0.2.4)
     nscd (~> 0.12.0)
     user (~> 0.3.1)
-  mo_application_php (0.1.34)
+  mo_application_php (0.1.35)
     mo_application (~> 0.1.34)
     php5-fpm (~> 0.4.0)
     sudo (~> 2.7.1)
