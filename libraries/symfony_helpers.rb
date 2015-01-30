@@ -26,6 +26,9 @@ end
 
 def symfony_application(data, &before_deploy_block)
   mo_application_php_symfony data['id'] do
+    if data['migration_command']
+      migration_command data['migration_command']
+    end
     action data['action']
     path data['path']
     repo data['repo']
