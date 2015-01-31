@@ -29,6 +29,8 @@ def symfony_application(data, &before_deploy_block)
     if data['migration_command']
       migration_command data['migration_command']
     end
+    user data['user']
+    group data['group']
     action data['action']
     path data['path']
     repo data['repo']
