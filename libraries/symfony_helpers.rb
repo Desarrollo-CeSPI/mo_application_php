@@ -5,7 +5,7 @@ def mo_symfony_clear_cache
     # resource_collection#find raises an exception. In that case we define this resource for the first time
     ruby_block cc_resource do
       block do
-        cmd = Mixlib::ShellOut.new("#{php_command} symfony cache:clear",
+        cmd = Mixlib::ShellOut.new("#{php_command} symfony cc",
                                    :user => new_resource.user,
                                    :env => nil,
                                    :cwd => ::File.join(new_resource.path, 'current'))
@@ -38,6 +38,7 @@ def symfony_application(data, &before_deploy_block)
     force_deploy data['force_deploy']
     ssh_private_key data['ssh_private_key']
     shared_files data['shared_files']
+    shared_dirs data['shared_dirs']
     nginx_config data['applications']
     php_fpm_config data['php_fpm_config'] || Hash.new
     before_deploy(&before_deploy_block)
