@@ -42,6 +42,7 @@ def symfony_application(data, &before_deploy_block)
     nginx_config data['applications']
     php_fpm_config data['php_fpm_config'] || Hash.new
     before_deploy(&before_deploy_block)
+    ssh_keys data['ssh_keys']
   end
   setup_dotenv data unless data['action'] == 'remove'
 end
