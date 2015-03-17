@@ -31,7 +31,7 @@ def symfony_application(data, &before_deploy_block)
     end
     user data['user']
     group data['group']
-    action data['action']
+    action (data['remove'] ? :remove : :install)
     path data['path']
     repo data['repo']
     revision data['revision']
@@ -44,5 +44,5 @@ def symfony_application(data, &before_deploy_block)
     before_deploy(&before_deploy_block)
     ssh_keys data['ssh_keys']
   end
-  setup_dotenv data unless data['action'] == 'remove'
+  setup_dotenv data
 end
