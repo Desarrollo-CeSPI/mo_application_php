@@ -10,7 +10,6 @@ def initialize(name, run_context=nil)
   @group = name
   @home = "/home/#{user}"
   @copy_files = lazy { php_fpm_required_files }
-  @migrate = true
   @migration_command = <<-EOF
     #{php_command} symfony propel:build --all-classes
     #{php_command} symfony plugin:publish
