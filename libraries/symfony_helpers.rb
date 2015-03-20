@@ -1,12 +1,11 @@
 def mo_symfony_clear_cache
   cc_resource = "mo_symfony_clear_cache_#{new_resource.name}"
-  php_cmd = php_command
   run_context.resource_collection.find("ruby_block[#{cc_resource}]")
   rescue Chef::Exceptions::ResourceNotFound
     # resource_collection#find raises an exception. In that case we define this resource for the first time
     ruby_block cc_resource do
       block do
-        cmd = Mixlib::ShellOut.new("#{php_cmd} symfony cc",
+        cmd = Mixlib::ShellOut.new(php_command,
                                    :user => new_resource.user,
                                    :env => nil,
                                    :cwd => ::File.join(application_current_path))
@@ -14,6 +13,10 @@ def mo_symfony_clear_cache
       end
       action :nothing
     end
+end
+
+def php_command
+  node['mo_application_php']['php_command']
 end
 
 def symfony_application_template(name, &block)

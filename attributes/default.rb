@@ -13,3 +13,4 @@ default["php_fpm"]["config"] = <<-JSON
 }
 JSON
 default['mo_application_php']['status']['allow'] = '127.0.0.1'
+default['mo_application_php']['php_command'] = "php -dmemory_limit=512M"

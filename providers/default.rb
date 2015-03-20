@@ -8,10 +8,6 @@ action :remove do
   uninstall_application
 end
 
-def php_command
-  new_resource.php_command
-end
-
 # Additionals directories to create are:
 # session directory and fpm logs
 def custom_dirs

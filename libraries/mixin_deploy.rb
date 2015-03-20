@@ -6,8 +6,6 @@ class MoApplicationPhp
       # PHP-fpm options
       klass.attribute :php_fpm_config, :kind_of => Hash, :default => Hash.new
 
-      # php command
-      klass.attribute :php_command, :kind_of => String, :default => "php -dmemory_limit=512M"
     end
 
     def initialize(name, run_context=nil)
