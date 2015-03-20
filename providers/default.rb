@@ -1,217 +1,78 @@
-use_inline_resources
-include MoApplication::Logrotate
-include MoApplication::SetupSSH
-include MoApplication::Nginx
+include MoApplication::DeployProviderBase
 
 action :install do
-
-  mo_application_user new_resource.user do
-    group new_resource.group
-    ssh_keys new_resource.ssh_keys
-  end
-
-  if new_resource.chroot
-
-    mo_application_php_chroot new_resource.path do
-      copy_files new_resource.copy_files
-    end
-
-    fix_chroot
-
-  else
-
-    directory new_resource.path do
-      recursive true
-      owner new_resource.user
-      group www_group
-      mode 0750
-    end
-
-    directory ::File.dirname(fpm_socket) do
-      owner new_resource.user
-      group www_group
-      mode 0750
-    end
-
-  end
-
-  directory full_session_dir do
-    owner new_resource.user
-    group new_resource.group
-    mode 0750
-    recursive true
-  end
-
-  directory www_log_dir do
-    owner www_user
-    group new_resource.group
-    mode 0750
-    recursive true
-  end
-
-  directory fpm_log_dir do
-    owner new_resource.user
-    group new_resource.group
-    mode 0750
-    recursive true
-  end
-
-  setup_ssh new_resource.user, new_resource.group, new_resource.ssh_private_key
-
-  service node[:php_fpm][:package] do
-      #Bug in 14.04 for service provider. Adding until resolved.
-      if (platform?('ubuntu') && node['platform_version'].to_f >= 14.04)
-          provider Chef::Provider::Service::Upstart
-      end
-      action :nothing
-  end
-
-  if new_resource.deploy
-
-    mo_application_deploy new_resource.name do
-      user                        new_resource.user
-      group                       new_resource.group
-      path                        ::File.join(new_resource.path,new_resource.relative_path)
-      repo                        new_resource.repo
-      revision                    new_resource.revision
-      migrate                     new_resource.migrate
-      migration_command           new_resource.migration_command
-      shared_dirs                 new_resource.shared_dirs
-      shared_files                new_resource.shared_files
-      create_dirs_before_symlink  new_resource.create_dirs_before_symlink
-      force_deploy                new_resource.force_deploy
-      ssh_wrapper                 new_resource.ssh_wrapper
-      if new_resource.callback_before_deploy
-        before_deploy(&new_resource.callback_before_deploy) 
-      end
-      notifies :restart, "service[#{node[:php_fpm][:package]}]"
-    end
-
-  end
-
-  directory ::File.join(new_resource.path,new_resource.relative_path) do
-    owner new_resource.user
-    group www_group
-    mode 0750
-  end
-
-  link ::File.join('/home',new_resource.user,'application') do
-    to ::File.join(new_resource.path,new_resource.relative_path)
-  end
-
-  link ::File.join('/home',new_resource.user,'log') do
-    to ::File.join(new_resource.path,'log')
-  end
-
-  php_fpm_pool
-
-  nginx_create_configuration
-
-  logrotate
-
-  setup_cron_php_session :create
-
-  sudo_reload :install
-
+  install_application
 end
 
 action :remove do
-  sudo_reload :remove
-
-  setup_cron_php_session :delete
-
-  php_fpm_pool :delete
-
-  nginx_create_configuration :delete
-
-  service node[:php_fpm][:package] do
-      #Bug in 14.04 for service provider. Adding until resolved.
-      if (platform?('ubuntu') && node['platform_version'].to_f >= 14.04)
-          provider Chef::Provider::Service::Upstart
-      end
-      action :nothing
-  end
-
-  mo_application_php_chroot new_resource.path do
-    copy_files new_resource.copy_files
-    action :remove
-    notifies :restart, "service[#{node[:php_fpm][:package]}]", :immediately
-  end
-
-  mo_application_user new_resource.user do
-    group new_resource.group
-    action :remove
-  end
-
-  logrotate false
+  uninstall_application
 end
 
-
-def fix_chroot
-  root = ::File.join(new_resource.path,new_resource.path)
-
-  directory ::File.dirname(root) do
-      recursive true
-  end
-
-  link root do
-      to '/'
-  end
+def php_command
+  new_resource.php_command
 end
 
-def session_dir
-  ::File.join('','var','lib','session','php')
+# Additionals directories to create are:
+# session directory and fpm logs
+def custom_dirs
+  [php_session_dir, fpm_log_dir]
+end
+
+def create_services
+  fpm_pool :create
+  cron_php_session :create
+  fpm_service_resource :nothing
+end
+
+def remove_services
+  fpm_pool :delete
+  cron_php_session :delete
+  fpm_service_resource :restart
+end
+
+def php_session_dir
+  ::File.join(full_var_run_directory,'php')
 end
 
 def logrotate_service_logs
-  Array(self.www_logs) + [fpm_log]
-end
-
-def logrotate_application_logs
-  ::File.join(new_resource.path, new_resource.relative_path, 'shared', new_resource.log_dir, '*.log')
-end
-
-def php_fpm_pid
-  config = JSON.parse node["php_fpm"]["config"]
-  config['config']['pid']
+  super + [fpm_log_dir]
 end
 
 def logrotate_postrotate
+  config = JSON.parse node["php_fpm"]["config"]
+  php_fpm_pid = config['config']['pid']
   <<-CMD
     [ ! -f #{nginx_pid} ] || kill -USR1 `cat #{nginx_pid}`
     [ ! -f #{php_fpm_pid} ] || kill -USR1 `cat #{php_fpm_pid}`
   CMD
 end
 
+def fpm_service_resource(action)
+  service node[:php_fpm][:package] do
+      #Bug in 14.04 for service provider. Adding until resolved.
+      if (platform?('ubuntu') && node['platform_version'].to_f >= 14.04)
+          provider Chef::Provider::Service::Upstart
+      end
+      action action
+  end
+end
 
 def fpm_log_dir
   ::File.join(new_resource.path,'log','fpm')
 end
 
-def fpm_log
-  ::File.join(fpm_log_dir,"access.log")
-end
-
-def fpm_relative_socket
-  "run/php5-fpm.socket"
-end
-
 def fpm_socket
-  ::File.join(new_resource.path,fpm_relative_socket)
+  ::File.join(full_var_run_directory, "app.sock")
 end
 
-def fpm_document_root(relative_path)
-  ::File.join '', new_resource.relative_path, 'current', (relative_path || 'web')
-end
-
-def php_fpm_pool(template_action = :create)
+def fpm_pool(template_action = :create)
   options = {
     "user"                          => new_resource.user,
     "group"                         => new_resource.group,
-    "prefix"                        => new_resource.path,
+    "prefix"                        => application_full_path,
     "chdir"                         => "/",
-    "listen"                        => new_resource.chroot ? fpm_relative_socket :  fpm_socket,
-    "access.log"                    => fpm_log,
+    "listen"                        => fpm_socket,
+    "access.log"                    => ::File.join(fpm_log_dir,"access.log"),
     "access.format"                 => "%R - %u %t \'%m %r%Q%q\' %s %f %{mili}d %{kilo}M %C%%",
     "listen.backlog"                => "-1",
     "listen.owner"                  => new_resource.user,
@@ -232,8 +93,8 @@ def php_fpm_pool(template_action = :create)
     "env[TMP]"                      => "/tmp",
     "env[TMPDIR]"                   => "/tmp",
     "env[TEMP]"                     => "/tmp",
-    "php_value[session.save_path]"  => new_resource.chroot ? session_dir : full_session_dir
-  }.merge(new_resource.chroot ?  {"chroot" => new_resource.path } : {}).merge(new_resource.php_fpm_config)
+    "php_value[session.save_path]"  => php_session_dir
+  }.merge(new_resource.php_fpm_config)
 
 
   template "#{node[:php_fpm][:pools_path]}/#{new_resource.name}.conf" do
@@ -250,7 +111,7 @@ end
 
 def nginx_options_for(action, name, options)
   {
-    "root"      => nginx_document_root(fpm_document_root(options['relative_document_root'])),
+    "root"      => nginx_document_root(options['relative_document_root'] || 'web'),
     "site_type" => "dynamic",
     "action"    => action,
     "listen"    => "80",
@@ -286,8 +147,8 @@ def nginx_options_for(action, name, options)
     },
     "options" => {
       "index"     => "index.php",
-      "access_log"  => ::File.join(www_log_dir, "#{name}-access.log"),
-      "error_log"   => ::File.join(www_log_dir, "#{name}-error.log"),
+      "access_log"  => www_access_log(name),
+      "error_log"   => www_error_log(name),
       # this rewrites all the requests to the maintenance.html
       # page if it exists in the doc root. This is for capistrano's
       # disable web task
@@ -301,26 +162,12 @@ def nginx_options_for(action, name, options)
   }
 end
 
-def sudo_reload(to_do)
-  sudo "php_fpm_reload_#{new_resource.user}" do
-    user      new_resource.user
-    runas     'root'
-    commands  ["/usr/sbin/service #{node[:php_fpm][:package]} restart"]
-    nopasswd  true
-    action to_do
-  end
-end
-
-def setup_cron_php_session(to_do)
+def cron_php_session(to_do)
   cron "php_fpm_session_#{new_resource.user}" do
     minute "09,39"
     user new_resource.user
-    command "[ -x /usr/lib/php5/maxlifetime ] && [ -d #{full_session_dir} ] && find #{full_session_dir} -depth -mindepth 1 -maxdepth 1 -type f ! -execdir fuser -s {} \\; -cmin +$(/usr/lib/php5/maxlifetime) -delete"
+    command "[ -x /usr/lib/php5/maxlifetime ] && [ -d #{php_session_dir} ] && find #{php_session_dir} -depth -mindepth 1 -maxdepth 1 -type f ! -execdir fuser -s {} \\; -cmin +$(/usr/lib/php5/maxlifetime) -delete"
     action to_do
   end
-end
-
-def full_session_dir
-  ::File.join(new_resource.path,session_dir)
 end
 

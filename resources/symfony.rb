@@ -5,11 +5,6 @@ include ::MoApplicationPhp::DefaultResourceBase
 
 def initialize(name, run_context=nil)
   super
-  @callbacks = {}
-  @user = name
-  @group = name
-  @home = "/home/#{user}"
-  @copy_files = lazy { php_fpm_required_files }
   @migration_command = <<-EOF
     #{php_command} symfony propel:build --all-classes
     #{php_command} symfony plugin:publish
@@ -22,6 +17,5 @@ def initialize(name, run_context=nil)
     "config/databases.yml"              => "config/databases.yml",
     "config/app.yml"                    => "config/app.yml",
   }
-  @provider = lookup_provider_constant :mo_application_php
 end
 
