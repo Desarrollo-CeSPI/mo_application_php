@@ -106,6 +106,7 @@ def fpm_pool(template_action = :create)
 end
 
 def nginx_options_for(action, name, options)
+  allow_from = options && options.has_key?('allow') ? options.delete('allow') : false
   {
     "root"      => nginx_document_root(options['relative_document_root'] || 'web'),
     "site_type" => "dynamic",
@@ -132,7 +133,7 @@ def nginx_options_for(action, name, options)
           "SCRIPT_FILENAME $document_root$fastcgi_script_name",
           "PATH_INFO $fastcgi_path_info"
         ],
-      }.merge(options['allow'] ? {'allow' => options['allow'], 'deny' => 'all'}: {}),
+      }.merge(allow_from ? {'allow' => allow_from, 'deny' => 'all'}: {}),
       %q(~ ^/(status|ping)$) => {
         "access_log"    => "off",
         "allow"         => node['mo_application_php']['status']['allow'],
@@ -153,8 +154,8 @@ def nginx_options_for(action, name, options)
           "rewrite" =>  "^(.*)$  /mantenimiento.html last",
           "break" => nil,
         }
-     },
-    },
+     }
+    }.merge(options['options'] || Hash.new)
   }
 end
 
