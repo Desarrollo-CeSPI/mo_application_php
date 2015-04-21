@@ -5,11 +5,12 @@ def mo_symfony_clear_cache
     # resource_collection#find raises an exception. In that case we define this resource for the first time
     ruby_block cc_resource do
       block do
-        cmd = Mixlib::ShellOut.new(php_command,
+        cmd = Mixlib::ShellOut.new("#{php_command} symfony cc",
                                    :user => new_resource.user,
                                    :env => nil,
                                    :cwd => ::File.join(application_current_path))
         cmd.run_command
+        cmd.error!
       end
       action :nothing
     end
