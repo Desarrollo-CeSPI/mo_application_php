@@ -81,9 +81,9 @@ def fpm_pool(template_action = :create)
     "pm.max_spare_servers"          => "6",
     "pm.process_idle_timeout"       => "10s",
     "pm.max_requests"               => "500",
-    "pm.status_path"                => "/status",
+    "pm.status_path"                => "/fpm_status",
     "request_terminate_timeout"     => "120s",
-    "ping.path"                     => "/ping",
+    "ping.path"                     => "/fpm_ping",
     "ping.response"                 => "/pong",
     "security.limit_extensions"     => ".php",
     "env[TMP]"                      => "/tmp",
@@ -134,7 +134,7 @@ def nginx_options_for(action, name, options)
           "PATH_INFO $fastcgi_path_info"
         ],
       }.merge(allow_from ? {'allow' => allow_from, 'deny' => 'all'}: {}),
-      %q(~ ^/(status|ping)$) => {
+      %q(~ ^/fpm_(status|ping)$) => {
         "access_log"    => "off",
         "allow"         => node['mo_application_php']['status']['allow'],
         "deny"          => "all",
