@@ -22,7 +22,7 @@ def mo_application_php_monitoring_fpm_pool(data)
       fpm[level]['queue_max_reached'] ||= -1
     end
 
-    name = node['mo_monitoring']['fpm']['check_status_command']
+    name = node['mo_monitoring_client']['fpm']['check_status_command']
     check_name = "#{data['id']}_fpm_#{node.name}"
 
     nrpe_check check_name do
