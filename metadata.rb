@@ -6,9 +6,10 @@ description      'Installs/Configures mo_application_php'
 long_description 'Installs/Configures mo_application_php'
 version          '1.1.0'
 
-depends         'mo_application',     "~> 1.1.0"
-depends         'php5-fpm',           "~> 0.4.0"
-depends         'wkhtmltox',          "~> 0.1.0"
-depends         'sudo',               "~> 2.7.1"
+depends         'mo_application',         "~> 1.1.0"
+depends         'mo_monitoring_client',   "~> 0.1.0"
+depends         'php5-fpm',               "~> 0.4.0"
+depends         'wkhtmltox',              "~> 0.1.0"
+depends         'sudo',                   "~> 2.7.1"
 
 supports        "ubuntu", "<= 12.04"

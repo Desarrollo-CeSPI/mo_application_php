@@ -24,7 +24,6 @@ def mo_application_php_monitoring_fpm_pool(data)
     name = "check_phpfpm_status"
     check_name = "#{data['id']}_fpm_#{node.name}"
 
-
     nrpe_check check_name do
       command "#{node["mo_monitoring_client"]["install_directory"]}/#{name}.pl"
       warning_condition "#{fpm['warning']['min_available_processes']},#{fpm['warning']['proc_max_reached']},#{fpm['warning']['queue_max_reached']}"
