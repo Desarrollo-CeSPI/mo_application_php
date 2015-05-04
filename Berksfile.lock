@@ -4,7 +4,7 @@ DEPENDENCIES
     revision: 9b1417077047cc8371fac51a0fd67c04f2959b87
   mo_application
     git: https://github.com/Desarrollo-CeSPI/mo_application.git
-    revision: 6d5a4e30ba2f514e733cb7953c776ec8e5cb87d2
+    revision: 14632bb1c477ba28d826de587b8edac32c8113b3
     tag: v1.1.1
   mo_application_php
     path: .
@@ -15,8 +15,8 @@ DEPENDENCIES
     tag: v0.1.34
   mo_monitoring_client
     git: https://github.com/Desarrollo-CeSPI/mo_monitoring_client.git
-    revision: 86bd29f8d0e3aa4193861a00c089311211f463a2
-    tag: v1.0.0
+    revision: 3c049d8535fc34d315074aa0bd7a725f2a2e64e1
+    tag: v1.0.1
   mo_mysql
     git: https://github.com/Desarrollo-CeSPI/mo_mysql.git
     revision: 4c397823ca1b4f88e4bb1cba4fe23c868dced73f
@@ -71,14 +71,15 @@ GRAPH
     nginx_conf (~> 0.2.4)
     nscd (~> 0.12.0)
     user (~> 0.4.0)
-  mo_application_php (1.1.0)
+  mo_application_php (1.1.1)
     mo_application (~> 1.1.0)
+    mo_monitoring_client (~> 1.0.1)
     php5-fpm (~> 0.4.0)
     sudo (~> 2.7.1)
     wkhtmltox (~> 0.1.0)
   mo_backup (0.1.34)
     rbenv (~> 1.7.1)
-  mo_monitoring_client (1.0.0)
+  mo_monitoring_client (1.0.1)
     nrpe (~> 1.5.0)
   mo_mysql (1.1.0)
     build-essential (~> 2.2.0)

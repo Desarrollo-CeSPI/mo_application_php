@@ -21,11 +21,11 @@ def mo_application_php_monitoring_fpm_pool(data)
       fpm[level]['queue_max_reached'] ||= -1
     end
 
-    name = "check_phpfpm_status"
+    name = node['mo_monitoring']['fpm']['check_status_command']
     check_name = "#{data['id']}_fpm_#{node.name}"
 
     nrpe_check check_name do
-      command "#{node["mo_monitoring_client"]["install_directory"]}/#{name}.pl"
+      command "#{node["mo_monitoring_client"]["install_directory"]}/#{name}"
       warning_condition "#{fpm['warning']['min_available_processes']},#{fpm['warning']['proc_max_reached']},#{fpm['warning']['queue_max_reached']}"
       critical_condition "#{fpm['critical']['min_available_processes']},#{fpm['critical']['proc_max_reached']},#{fpm['critical']['queue_max_reached']}"
       parameters "-H localhost -u /fpm_status -s #{server_name}"
