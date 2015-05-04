@@ -71,7 +71,7 @@ GRAPH
     nginx_conf (~> 0.2.4)
     nscd (~> 0.12.0)
     user (~> 0.4.0)
-  mo_application_php (1.1.1)
+  mo_application_php (1.1.2)
     mo_application (~> 1.1.0)
     mo_monitoring_client (~> 1.0.1)
     php5-fpm (~> 0.4.0)

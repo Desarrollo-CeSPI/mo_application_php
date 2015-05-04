@@ -5,7 +5,8 @@ def mo_application_php_monitoring_from_databag(cookbook_name)
 end
 
 def mo_application_php_monitoring(data)
-    mo_application_php_monitoring_fpm_pool data
+  include_recipe "mo_monitoring_client::fpm"
+  mo_application_php_monitoring_fpm_pool data
 end
 
 def mo_application_php_monitoring_fpm_pool(data)
