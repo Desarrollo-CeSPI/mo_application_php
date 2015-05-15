@@ -4,7 +4,7 @@ maintainer_email 'chrodriguez@gmail.com leandro.ditommaso@mikroways.net'
 license          'All rights reserved'
 description      'Installs/Configures mo_application_php'
 long_description 'Installs/Configures mo_application_php'
-version          '1.1.2'
+version          '1.1.3'
 
 depends         'mo_application',         "~> 1.1.0"
 depends         'mo_monitoring_client',   "~> 1.0.1"

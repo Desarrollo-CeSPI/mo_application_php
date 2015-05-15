@@ -133,7 +133,7 @@ def nginx_options_for(action, name, options)
           "SCRIPT_FILENAME $document_root$fastcgi_script_name",
           "PATH_INFO $fastcgi_path_info"
         ],
-      }.merge(allow_from ? {'allow' => allow_from, 'deny' => 'all'}: {}),
+      }.merge(allow_from ? {'allow' => allow_from, 'deny' => 'all'}: {}).merge(options['upstream_options'] || Hash.new),
       %q(~ ^/fpm_(status|ping)$) => {
         "access_log"    => "off",
         "allow"         => node['mo_application_php']['status']['allow'],
@@ -155,7 +155,7 @@ def nginx_options_for(action, name, options)
           "break" => nil,
         }
      }
-    }.merge(options['options'] || Hash.new)
+    }
   }
 end
 
