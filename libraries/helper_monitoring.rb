@@ -11,7 +11,7 @@ end
 
 def mo_application_php_monitoring_fpm_pool(data)
   (data['applications'] || Hash.new).each do |app, app_data|
-    server_name = app_data['server_name']
+    server_name = Array(app_data['server_name']).first
 
     monitoring = app_data['monitoring'] || Hash.new
     fpm = monitoring['fpm'] || Hash.new
