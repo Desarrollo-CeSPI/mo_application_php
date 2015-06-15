@@ -1,6 +1,6 @@
 def mo_application_php_monitoring_from_databag(cookbook_name)
   mo_application_from_data_bag(cookbook_name, false).tap do |data|
-    mo_application_php_monitoring_fpm_pool data
+    mo_application_php_monitoring data
   end
 end
 
