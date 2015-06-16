@@ -5,9 +5,9 @@ def mo_application_php_statistics_from_databag(cookbook_name)
 end
 
 def mo_application_php_statistics(data)
+  mo_collectd_user_rss data['id'], !!!data['remove']
+  mo_collectd_file_count data['id'], mo_application_filecount_directories(data),!!!data['remove']
   (data['applications']|| Hash.new).each do |k, v_data| 
-    mo_collectd_user_rss data['id'], !!!data['remove']
-    mo_collectd_file_count data['id'], mo_application_filecount_directories(data),!!!data['remove']
     mo_collectd_php_fpm "#{data['id']}_#{k}", "http://localhost/fpm_status?json", Array(v_data['server_name']).first, !!!data['remove']
   end
 end
