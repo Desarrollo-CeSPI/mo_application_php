@@ -7,6 +7,7 @@ end
 def mo_application_php_monitoring(data)
   include_recipe "mo_monitoring_client::fpm"
   mo_application_php_monitoring_fpm_pool data
+  mo_application_http_check data
 end
 
 def mo_application_php_monitoring_fpm_pool(data)
@@ -33,6 +34,6 @@ def mo_application_php_monitoring_fpm_pool(data)
       action (data['remove'] ? :remove : :add)
       notifies :restart, "service[#{node['nrpe']['service_name']}]"
     end
-
+    return
   end
 end
