@@ -8,6 +8,7 @@ def mo_application_php_monitoring(data)
   include_recipe "mo_monitoring_client::fpm"
   mo_application_php_monitoring_fpm_pool data
   mo_application_http_check data
+  mo_application_custom_check data
 end
 
 def mo_application_php_monitoring_fpm_pool(data)
