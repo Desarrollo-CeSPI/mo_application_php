@@ -28,5 +28,6 @@ def symfony_application_template(name, &block)
 end
 
 def symfony_application(data, &before_deploy_block)
+  data['migrate'] = true if data['migrate'].nil?
   mo_application_deploy(data, :mo_application_php_symfony, &before_deploy_block)
 end

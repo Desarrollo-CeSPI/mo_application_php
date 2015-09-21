@@ -1,17 +1,19 @@
 def mo_application_php_monitoring_from_databag(cookbook_name)
   mo_application_from_data_bag(cookbook_name, false).tap do |data|
-    mo_application_php_monitoring_fpm_pool data
+    mo_application_php_monitoring data
   end
 end
 
 def mo_application_php_monitoring(data)
   include_recipe "mo_monitoring_client::fpm"
   mo_application_php_monitoring_fpm_pool data
+  mo_application_http_check data
+  mo_application_custom_check data
 end
 
 def mo_application_php_monitoring_fpm_pool(data)
   (data['applications'] || Hash.new).each do |app, app_data|
-    server_name = app_data['server_name']
+    server_name = Array(app_data['server_name']).first
 
     monitoring = app_data['monitoring'] || Hash.new
     fpm = monitoring['fpm'] || Hash.new
@@ -33,6 +35,6 @@ def mo_application_php_monitoring_fpm_pool(data)
       action (data['remove'] ? :remove : :add)
       notifies :restart, "service[#{node['nrpe']['service_name']}]"
     end
-
+    return
   end
 end

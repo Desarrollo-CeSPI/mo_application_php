@@ -31,14 +31,14 @@ def php_session_dir
 end
 
 def logrotate_service_logs
-  super + [fpm_log_dir]
+  Array(www_logs) + [fpm_log_dir]
 end
 
 def logrotate_postrotate
   config = JSON.parse node["php_fpm"]["config"]
   php_fpm_pid = config['config']['pid']
   <<-CMD
-    [ ! -f #{nginx_pid} ] || kill -USR1 `cat #{nginx_pid}`
+    #{logrotate_postrotate_nginx}
     [ ! -f #{php_fpm_pid} ] || kill -USR1 `cat #{php_fpm_pid}`
   CMD
 end
@@ -131,9 +131,10 @@ def nginx_options_for(action, name, options)
         "fastcgi_pass"  => "unix:#{fpm_socket}",
         "fastcgi_param" => [
           "SCRIPT_FILENAME $document_root$fastcgi_script_name",
+          "SERVER_PORT $http_x_forwarded_port",
           "PATH_INFO $fastcgi_path_info"
         ],
-      }.merge(allow_from ? {'allow' => allow_from, 'deny' => 'all'}: {}),
+      }.merge(allow_from ? {'allow' => allow_from, 'deny' => 'all'}: {}).merge(options['upstream_options'] || Hash.new),
       %q(~ ^/fpm_(status|ping)$) => {
         "access_log"    => "off",
         "allow"         => node['mo_application_php']['status']['allow'],
@@ -155,7 +156,7 @@ def nginx_options_for(action, name, options)
           "break" => nil,
         }
      }
-    }.merge(options['options'] || Hash.new)
+    }
   }
 end
 
