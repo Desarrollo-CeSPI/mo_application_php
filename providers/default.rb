@@ -131,6 +131,7 @@ def nginx_options_for(action, name, options)
         "fastcgi_pass"  => "unix:#{fpm_socket}",
         "fastcgi_param" => [
           "SCRIPT_FILENAME $document_root$fastcgi_script_name",
+          "SERVER_PORT $http_x_forwarded_port",
           "PATH_INFO $fastcgi_path_info"
         ],
       }.merge(allow_from ? {'allow' => allow_from, 'deny' => 'all'}: {}).merge(options['upstream_options'] || Hash.new),
