@@ -31,7 +31,7 @@ def php_session_dir
 end
 
 def logrotate_service_logs
-  Array(www_logs) + [fpm_log_dir]
+  Array(www_logs) + [::File.join(fpm_log_dir,'access.log')]
 end
 
 def logrotate_postrotate
